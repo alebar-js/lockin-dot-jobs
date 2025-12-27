@@ -1,0 +1,2 @@
+export { ResumeRenderer } from "./ResumeRenderer";
+
