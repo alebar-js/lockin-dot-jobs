@@ -1,50 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #0a0a0a;
+  --background: #f8fcfb;
+  --foreground: #0f2a2e;
   --card: #ffffff;
-  --card-foreground: #0a0a0a;
+  --card-foreground: #0f2a2e;
   --popover: #ffffff;
-  --popover-foreground: #0a0a0a;
-  --primary: #0f172a;
-  --primary-foreground: #f8fafc;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  --destructive: #ef4444;
-  --destructive-foreground: #f8fafc;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #0f172a;
+  --popover-foreground: #0f2a2e;
+  --primary: #1b8c9d;
+  --primary-foreground: #f8fcfb;
+  --secondary: #e6f7f5;
+  --secondary-foreground: #145c66;
+  --muted: #e8f4f3;
+  --muted-foreground: #4a7178;
+  --accent: #d2f9e0;
+  --accent-foreground: #0f5c52;
+  --destructive: #dc2626;
+  --destructive-foreground: #fef2f2;
+  --border: #c5e0de;
+  --input: #c5e0de;
+  --ring: #1b8c9d;
   --radius: 0.5rem;
+  --panel-elevated: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #fafafa;
-    --card: #0a0a0a;
-    --card-foreground: #fafafa;
-    --popover: #0a0a0a;
-    --popover-foreground: #fafafa;
-    --primary: #f8fafc;
-    --primary-foreground: #0f172a;
-    --secondary: #1e293b;
-    --secondary-foreground: #f8fafc;
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
-    --accent: #1e293b;
-    --accent-foreground: #f8fafc;
-    --destructive: #7f1d1d;
-    --destructive-foreground: #f8fafc;
-    --border: #1e293b;
-    --input: #1e293b;
-    --ring: #cbd5e1;
-  }
+.dark {
+  --background: #0c1214;
+  --foreground: #e8f4f3;
+  --card: #0f1a1c;
+  --card-foreground: #e8f4f3;
+  --popover: #0f1a1c;
+  --popover-foreground: #e8f4f3;
+  --primary: #4ec5d4;
+  --primary-foreground: #0c1214;
+  --secondary: #143035;
+  --secondary-foreground: #d2f9e0;
+  --muted: #1a2e32;
+  --muted-foreground: #8aacb0;
+  --accent: #1b3a40;
+  --accent-foreground: #a5f3df;
+  --destructive: #b91c1c;
+  --destructive-foreground: #fef2f2;
+  --border: #1e3d42;
+  --input: #1e3d42;
+  --ring: #4ec5d4;
+  --panel-elevated: #131f22;
 }
 
 @theme inline {
@@ -73,6 +73,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-panel-elevated: var(--panel-elevated);
 }
 
 body {

@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
-import { analyzeSkillGaps } from "@/lib/ai";
-import { skillGapService } from "@/lib/db/services";
-import { SkillGapAnalysisRequestSchema } from "@/types/resume";
+import { analyzeJobPosting } from "@/lib/ai";
+import { jobAnalysisService } from "@/lib/db/services";
 import { z } from "zod";
 
-// Extended schema to include jobPostingId for caching
-const CachedSkillGapRequestSchema = SkillGapAnalysisRequestSchema.extend({
+const AnalyzeRequestSchema = z.object({
   jobPostingId: z.string().uuid(),
+  jobDescription: z.string().min(1, "Job description is required"),
 });
 
-// GET /api/skill-gap?jobPostingId=xxx - Get cached analysis only
+// GET /api/job-analysis?jobPostingId=xxx - Get cached analysis only
 export async function GET(request: NextRequest) {
   try {
     const userId = await requireAuth();
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const cached = await skillGapService.getCachedAnalysis(jobPostingId, userId);
+    const cached = await jobAnalysisService.getCachedAnalysis(jobPostingId, userId);
 
     if (!cached) {
       return NextResponse.json({ cached: false, analysis: null });
@@ -38,7 +37,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("Error fetching cached skill gap analysis:", error);
+    console.error("Error fetching cached job analysis:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -46,13 +45,13 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/skill-gap - Analyze skill gaps (with caching)
+// POST /api/job-analysis - Analyze job posting (with caching)
 export async function POST(request: NextRequest) {
   try {
     const userId = await requireAuth();
     const body = await request.json();
 
-    const parsed = CachedSkillGapRequestSchema.safeParse(body);
+    const parsed = AnalyzeRequestSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid request body", details: parsed.error.format() },
@@ -60,10 +59,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { jobPostingId, resume, jobDescription } = parsed.data;
+    const { jobPostingId, jobDescription } = parsed.data;
 
-    // 1. Check cache first
-    const cached = await skillGapService.getCachedAnalysis(jobPostingId, userId);
+    // Check cache first
+    const cached = await jobAnalysisService.getCachedAnalysis(jobPostingId, userId);
     if (cached) {
       return NextResponse.json({
         ...cached.analysis,
@@ -72,11 +71,11 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 2. Call LLM if no cache
-    const result = await analyzeSkillGaps({ resume, jobDescription });
+    // Call LLM if no cache
+    const result = await analyzeJobPosting(jobDescription);
 
-    // 3. Save to cache
-    await skillGapService.saveAnalysis(jobPostingId, userId, result);
+    // Save to cache
+    await jobAnalysisService.saveAnalysis(jobPostingId, userId, result);
 
     return NextResponse.json({
       ...result,
@@ -86,7 +85,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("Error analyzing skill gaps:", error);
+    console.error("Error analyzing job posting:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

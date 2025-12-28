@@ -3,8 +3,13 @@
 import { Loader2, Sparkles, TrendingUp, CheckCircle2, FileText, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
-import { useRefactorData, useAnalyzeSkillGaps, useMasterResumeData } from "@/lib/queries";
-import { useJobPostingData } from "@/lib/queries";
+import {
+  useRefactorData,
+  useAnalyzeSkillGaps,
+  useMasterResumeData,
+  useJobPostingData,
+  useSkillGapAnalysis,
+} from "@/lib/queries";
 
 /**
  * JobPostingActionsMenu - Action menu for job posting workspace
@@ -17,6 +22,7 @@ export function JobPostingActionsMenu() {
   const setSkillGapData = useAppStore((state) => state.setSkillGapData);
   const { data: jobPostingData } = useJobPostingData(activeJobPostingId ?? "");
   const { data: masterResumeData } = useMasterResumeData();
+  const { data: cachedSkillGap, refetch: fetchSkillGap } = useSkillGapAnalysis(activeJobPostingId);
   const refactorMutation = useRefactorData();
   const skillGapMutation = useAnalyzeSkillGaps();
 
@@ -44,21 +50,47 @@ export function JobPostingActionsMenu() {
   };
 
   const hasExistingResume = !!jobPostingData?.data;
+  const hasCachedSkillGaps = !!jobPostingData?.hasSkillGapAnalysis;
+
+  const getSkillGapButtonText = () => {
+    if (skillGapMutation.isPending) return "Analyzing...";
+    if (hasCachedSkillGaps) return "View Skill Gaps";
+    return "Analyze Skill Gaps";
+  };
 
   const handleAnalyzeSkillGaps = async () => {
-    if (!jobPostingData?.jobDescription?.trim()) {
+    if (!jobPostingData?.jobDescription?.trim() || !activeJobPostingId) {
       return;
     }
 
-    const resumeToAnalyze = jobPostingData?.data || masterResumeData?.data;
+    setJobDescription(jobPostingData.jobDescription);
 
+    // Fetch cached analysis if available
+    if (hasCachedSkillGaps) {
+      // If we already have the data in cache, use it directly
+      if (cachedSkillGap?.cached && cachedSkillGap.analysis) {
+        setSkillGapData(cachedSkillGap.analysis);
+        setJobPostingView("skillGaps");
+        return;
+      }
+      // Otherwise fetch it
+      const { data } = await fetchSkillGap();
+      if (data?.cached && data.analysis) {
+        setSkillGapData(data.analysis);
+        setJobPostingView("skillGaps");
+        return;
+      }
+    }
+
+    // No cache - run the analysis
+    const resumeToAnalyze = jobPostingData?.data || masterResumeData?.data;
     if (!resumeToAnalyze) {
       return;
     }
 
     try {
-      setJobDescription(jobPostingData.jobDescription);
       const result = await skillGapMutation.mutateAsync({
+        jobPostingId: activeJobPostingId,
         jobDescription: jobPostingData.jobDescription,
         resume: resumeToAnalyze,
       });
@@ -80,7 +112,7 @@ export function JobPostingActionsMenu() {
   };
 
   return (
-    <div className="h-full flex items-center justify-center p-8">
+    <div className="h-full flex items-center justify-center p-8 bg-panel-elevated">
       <div className="flex flex-col gap-4 w-full max-w-md">
         <div className="text-center mb-4">
           <h2 className="text-xl font-semibold text-foreground mb-2">
@@ -135,16 +167,11 @@ export function JobPostingActionsMenu() {
           className="w-full justify-start gap-3 h-12"
         >
           {skillGapMutation.isPending ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Analyzing...
-            </>
+            <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
-            <>
-              <TrendingUp className="w-5 h-5" />
-              Analyze Skill Gaps
-            </>
+            <TrendingUp className="w-5 h-5" />
           )}
+          {getSkillGapButtonText()}
         </Button>
 
         <Button
@@ -152,7 +179,7 @@ export function JobPostingActionsMenu() {
           variant="outline"
           size="lg"
           className="w-full justify-start gap-3 h-12"
-          disabled={!hasExistingResume && !masterResumeData?.data}
+          disabled={!hasExistingResume}
         >
           <Download className="w-5 h-5" />
           Export Resume

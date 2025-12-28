@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, FolderKanban, Plus } from "lucide-react";
+import { FileText, FolderKanban, Plus, LogOut } from "lucide-react";
 import { SearchBar } from "./SearchBar";
 import { MasterResumeItem } from "./MasterResumeItem";
 import { JobPostingsList } from "./JobPostingsList";
 import { CreateJobPostingDialog } from "./CreateJobPostingDialog";
 import { Button } from "@/components/ui/button";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import { signOut } from "next-auth/react";
 
 export function Explorer() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -60,9 +61,20 @@ export function Explorer() {
           <JobPostingsList onCreateClick={() => setIsCreateDialogOpen(true)} />
         </div>
 
-        {/* Theme Switcher */}
-        <div className="p-3 border-t border-border flex justify-center">
-          <ThemeSwitcher />
+        {/* Theme Switcher & Logout */}
+        <div className="p-3 border-t border-border">
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="flex-1 justify-start gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm">Logout</span>
+            </Button>
+            <ThemeSwitcher />
+          </div>
         </div>
       </div>
 

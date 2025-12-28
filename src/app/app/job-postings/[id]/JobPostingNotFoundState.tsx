@@ -17,7 +17,7 @@ export function JobPostingNotFoundState() {
         <p className="text-sm text-muted-foreground mb-6">
           The job posting you&apos;re looking for doesn&apos;t exist or has been deleted.
         </p>
-        <Button onClick={() => router.push("/resume")}>
+        <Button onClick={() => router.push("/app/resume")}>
           Go to Main Resume
         </Button>
       </div>

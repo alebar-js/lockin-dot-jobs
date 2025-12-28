@@ -1,5 +1,8 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
+import LinkedIn from "next-auth/providers/linkedin";
+import Facebook from "next-auth/providers/facebook";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -10,35 +13,58 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
     }),
+    GitHub({
+      clientId: process.env.AUTH_GITHUB_ID!,
+      clientSecret: process.env.AUTH_GITHUB_SECRET!,
+    }),
+    LinkedIn({
+      clientId: process.env.AUTH_LINKEDIN_ID!,
+      clientSecret: process.env.AUTH_LINKEDIN_SECRET!,
+    }),
+    Facebook({
+      clientId: process.env.AUTH_FACEBOOK_ID!,
+      clientSecret: process.env.AUTH_FACEBOOK_SECRET!,
+    }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
       if (!user.email) return false;
-      if (account?.provider !== "google") return false;
+      if (!account?.provider) return false;
 
-      const googleId = profile?.sub;
-      if (!googleId) return false;
+      const provider = account.provider;
+      const providerId = profile?.sub || profile?.id;
+      if (!providerId) return false;
 
       const now = new Date();
 
-      // Check if user exists by googleId
-      const [existingByGoogle] = await db
+      // Map provider to database column
+      const providerIdField = {
+        google: 'googleId',
+        github: 'githubId',
+        linkedin: 'linkedinId',
+        facebook: 'facebookId',
+      }[provider] as 'googleId' | 'githubId' | 'linkedinId' | 'facebookId' | undefined;
+
+      if (!providerIdField) return false;
+
+      // Check if user exists by provider ID
+      const [existingByProvider] = await db
         .select()
         .from(users)
-        .where(eq(users.googleId, googleId))
+        .where(eq(users[providerIdField], providerId))
         .limit(1);
 
-      if (existingByGoogle) {
+      if (existingByProvider) {
         // Update existing user
         await db
           .update(users)
           .set({
             email: user.email,
-            name: user.name ?? existingByGoogle.name,
-            picture: user.image ?? existingByGoogle.picture,
+            name: user.name ?? existingByProvider.name,
+            picture: user.image ?? existingByProvider.picture,
             updatedAt: now,
           })
-          .where(eq(users.id, existingByGoogle.id));
+          .where(eq(users.id, existingByProvider.id));
         return true;
       }
 
@@ -50,11 +76,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         .limit(1);
 
       if (existingByEmail) {
-        // Link Google account to existing user
+        // Link provider account to existing user
         await db
           .update(users)
           .set({
-            googleId,
+            [providerIdField]: providerId,
             name: user.name ?? existingByEmail.name,
             picture: user.image ?? existingByEmail.picture,
             updatedAt: now,
@@ -68,7 +94,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: user.email,
         name: user.name,
         picture: user.image,
-        googleId,
+        [providerIdField]: providerId,
         createdAt: now,
         updatedAt: now,
       });
@@ -76,12 +102,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
     async session({ session, token }) {
-      if (token.sub && session.user) {
-        // Fetch user from database to get the actual user ID
+      if (session.user?.email) {
+        // Fetch user from database by email to get the actual user ID
         const [dbUser] = await db
           .select()
           .from(users)
-          .where(eq(users.googleId, token.sub))
+          .where(eq(users.email, session.user.email))
           .limit(1);
 
         if (dbUser) {

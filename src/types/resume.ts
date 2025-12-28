@@ -130,6 +130,8 @@ export const JobPostingDataSchema = z.object({
   path: z.string().nullable().optional(),
   data: ResumeProfileSchema.nullable(),
   status: JobPostingStatusSchema,
+  hasSkillGapAnalysis: z.boolean().optional(),
+  hasJobAnalysis: z.boolean().optional(),
   createdAt: z.union([z.string(), z.date()]),
   updatedAt: z.union([z.string(), z.date()]),
 });
@@ -182,6 +184,7 @@ export type RefactorDataResponse = z.infer<typeof RefactorDataResponseSchema>;
 
 export const SkillGapCategorySchema = z.enum([
   "hard_skills",
+  "soft_skills",
   "domain_knowledge",
   "seniority",
 ]);
@@ -225,6 +228,22 @@ export const SkillGapAnalysisResponseSchema = z.object({
 export type SkillGapAnalysisResponse = z.infer<
   typeof SkillGapAnalysisResponseSchema
 >;
+
+// ============================================================================
+// JOB ANALYSIS SCHEMAS (LLM-extracted job posting summary)
+// ============================================================================
+
+export const JobAnalysisResponseSchema = z.object({
+  hardSkills: z.array(z.string()),
+  domainKnowledge: z.array(z.string()),
+  yearsOfExperience: z.string(),
+  jobTitle: z.string(),
+  keyResponsibilities: z.array(z.string()),
+  companyName: z.string(),
+  location: z.string(),
+});
+
+export type JobAnalysisResponse = z.infer<typeof JobAnalysisResponseSchema>;
 
 // ============================================================================
 // INGEST (RESUME PARSING) SCHEMAS

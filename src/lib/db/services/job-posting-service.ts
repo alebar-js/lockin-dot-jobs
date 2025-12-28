@@ -7,6 +7,8 @@ import type {
   UpdateJobPostingData,
 } from "@/types/resume";
 import { resumeService } from "./resume-service";
+import { skillGapService } from "./skill-gap-service";
+import { jobAnalysisService } from "./job-analysis-service";
 
 export const jobPostingService = {
   async deleteJobPosting(id: string, userId: string): Promise<boolean> {
@@ -61,10 +63,14 @@ export const jobPostingService = {
       .where(eq(jobPostings.userId, userId))
       .orderBy(desc(jobPostings.updatedAt));
 
-    // Fetch resume data for each job posting
+    // Fetch resume data and check for analyses for each job posting
     const resultsWithData = await Promise.all(
       results.map(async (row) => {
-        const resumeData = await resumeService.getResumeByJobPostingId(row.id, userId);
+        const [resumeData, hasSkillGap, hasJobAnalysisResult] = await Promise.all([
+          resumeService.getResumeByJobPostingId(row.id, userId),
+          skillGapService.hasAnalysis(row.id, userId),
+          jobAnalysisService.hasAnalysis(row.id, userId),
+        ]);
         return {
           id: row.id,
           title: row.title,
@@ -73,6 +79,8 @@ export const jobPostingService = {
           path: row.path || null,
           data: resumeData?.data || null,
           status: row.status,
+          hasSkillGapAnalysis: hasSkillGap,
+          hasJobAnalysis: hasJobAnalysisResult,
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
         };
@@ -94,7 +102,11 @@ export const jobPostingService = {
 
     if (!jobPosting) return null;
 
-    const resumeData = await resumeService.getResumeByJobPostingId(id, userId);
+    const [resumeData, hasSkillGap, hasJobAnalysisResult] = await Promise.all([
+      resumeService.getResumeByJobPostingId(id, userId),
+      skillGapService.hasAnalysis(id, userId),
+      jobAnalysisService.hasAnalysis(id, userId),
+    ]);
 
     return {
       id: jobPosting.id,
@@ -104,6 +116,8 @@ export const jobPostingService = {
       path: jobPosting.path || null,
       data: resumeData?.data || null,
       status: jobPosting.status,
+      hasSkillGapAnalysis: hasSkillGap,
+      hasJobAnalysis: hasJobAnalysisResult,
       createdAt: jobPosting.createdAt,
       updatedAt: jobPosting.updatedAt,
     };
@@ -162,6 +176,8 @@ export const jobPostingService = {
 
     if (data.jobDescription !== undefined) {
       updateFields.jobDescription = data.jobDescription;
+      // Invalidate job analysis cache when job description changes
+      await jobAnalysisService.deleteAnalysis(id, userId);
     }
 
     if (data.postingUrl !== undefined) {
@@ -185,6 +201,8 @@ export const jobPostingService = {
     // Update linked resume if data is provided
     if (data.data) {
       await resumeService.updateResumeForJobPosting(id, data.data, userId);
+      // Invalidate skill gap cache when resume is updated
+      await skillGapService.deleteAnalysis(id, userId);
     }
 
     return this.getJobPostingDataById(id, userId);

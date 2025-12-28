@@ -14,6 +14,7 @@ interface SkillGapAnalysisProps {
 
 const categoryLabels: Record<SkillGapCategory, string> = {
   hard_skills: "Hard Skills",
+  soft_skills: "Soft Skills",
   domain_knowledge: "Domain Knowledge",
   seniority: "Seniority",
 };
@@ -54,34 +55,30 @@ function SkillGapSection({
           {items.length}
         </Badge>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 flex flex-col items-center">
         {items.map((item, i) => (
           <div
             key={i}
             className={cn(
-              "rounded-lg p-3 border",
+              "rounded-lg p-3 border relative w-full",
               bgColors[status]
             )}
           >
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-foreground">{item.skill}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {categoryLabels[item.category]}
-                  </Badge>
-                </div>
-                {item.evidence && (
-                  <p className="text-sm text-muted-foreground/80 mt-1 italic">
-                    &quot;{item.evidence}&quot;
-                  </p>
-                )}
-                {item.recommendation && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    💡 {item.recommendation}
-                  </p>
-                )}
-              </div>
+            <Badge variant="outline" className="absolute top-3 right-3 text-xs w-24 text-center justify-center">
+              {categoryLabels[item.category]}
+            </Badge>
+            <div className="pr-20">
+              <span className="font-medium text-foreground">{item.skill}</span>
+              {item.evidence && (
+                <p className="text-sm text-muted-foreground/80 mt-1 italic">
+                  &quot;{item.evidence}&quot;
+                </p>
+              )}
+              {item.recommendation && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  💡 {item.recommendation}
+                </p>
+              )}
             </div>
           </div>
         ))}
@@ -158,7 +155,8 @@ export function SkillGapAnalysis({ data }: SkillGapAnalysisProps) {
       </div>
 
       {/* Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-2xl mx-auto space-y-6">
         <SkillGapSection
           title="Matched Skills"
           items={matched}
@@ -179,24 +177,25 @@ export function SkillGapAnalysis({ data }: SkillGapAnalysisProps) {
           status="missing"
           icon={XCircle}
         />
+        </div>
       </div>
 
       {/* Action Button */}
-      <div className="flex-shrink-0 p-4 border-t border-border bg-card/50">
+      <div className="flex-shrink-0 p-4 border-t border-border bg-card/50 flex flex-col items-center">
         <Button
           onClick={handleRefactorToFixGaps}
           disabled={!effectiveJobDescription.trim() || refactorMutation.isPending}
-          className="w-full gap-2"
-          size="lg"
+          className="gap-2"
+          size="sm"
         >
           {refactorMutation.isPending ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
               Refactoring...
             </>
           ) : (
             <>
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-4 h-4" />
               Refactor to Fix Gaps
             </>
           )}

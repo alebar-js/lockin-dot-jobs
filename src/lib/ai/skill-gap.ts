@@ -82,9 +82,10 @@ export async function analyzeSkillGaps(
 2. \`JobDescription\` (Text)
 
 **Analysis Criteria:**
-1. **Hard Skills:** Programming languages, frameworks, tools, technologies (e.g., React, Python, AWS, Docker)
-2. **Domain Knowledge:** Industry-specific knowledge, business domains (e.g., Fintech, E-commerce, Healthcare, Scalability, Microservices)
-3. **Seniority:** Years of experience, leadership signals, scope of responsibility (e.g., "5+ years", "lead", "architect", "drive")
+1. **Hard Skills (hard_skills):** Programming languages, frameworks, tools, technologies (e.g., React, Python, AWS, Docker)
+2. **Soft Skills (soft_skills):** Communication, collaboration, leadership behaviors, problem-solving (e.g., "team player", "mentor", "cross-functional")
+3. **Domain Knowledge (domain_knowledge):** Industry-specific knowledge, business domains (e.g., Fintech, E-commerce, Healthcare, Scalability, Microservices)
+4. **Seniority (seniority):** Years of experience, leadership signals, scope of responsibility (e.g., "5+ years", "lead", "architect", "drive")
 
 **Task:**
 Analyze the resume and job description to categorize each skill/keyword from the JD into one of three statuses:
@@ -137,6 +138,7 @@ Return a JSON object with this structure:
 3. Be helpful - provide actionable recommendations for missing/partial skills
 4. Include evidence quotes from the resume when available
 5. Calculate matchPercentage as: ((matchedCount + partialCount * 0.5) / totalSkills) * 100
+6. IMPORTANT: category MUST be exactly one of: "hard_skills", "soft_skills", "domain_knowledge", "seniority"
 
 **Output:**
 Return ONLY a valid JSON object. No explanations, no markdown code blocks, no preamble.`;

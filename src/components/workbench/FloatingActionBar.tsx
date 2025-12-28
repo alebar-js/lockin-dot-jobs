@@ -197,7 +197,7 @@ export function FloatingActionBar() {
         data: diffData.resolved,
       });
       
-      router.push(`/job-postings/${newJobPosting.id}`);
+      router.push(`/app/job-postings/${newJobPosting.id}`);
       keepChangesData();
       setShowSaveDialog(false);
       setForkTitle("");

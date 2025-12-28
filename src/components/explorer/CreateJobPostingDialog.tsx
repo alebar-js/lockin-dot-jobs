@@ -58,7 +58,7 @@ export function CreateJobPostingDialog({
 
       // Navigate to new job posting
       setActiveJobPostingId(result.id);
-      router.push(`/job-postings/${result.id}`);
+      router.push(`/app/job-postings/${result.id}`);
     } catch (error) {
       console.error("Failed to create job posting:", error);
     }

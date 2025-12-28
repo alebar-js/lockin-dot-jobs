@@ -3,6 +3,7 @@ import type {
   JobPostingData,
   RefactorDataResponse,
   SkillGapAnalysisResponse,
+  JobAnalysisResponse,
   JobPostingStatus,
 } from "@/types";
 
@@ -131,14 +132,48 @@ export const refactorApi = {
 // Skill Gap API
 export const skillGapApi = {
   async analyze(
+    jobPostingId: string,
     resume: ResumeProfile,
     jobDescription: string
-  ): Promise<SkillGapAnalysisResponse> {
+  ): Promise<SkillGapAnalysisResponse & { cached?: boolean; cachedAt?: string }> {
     const response = await fetch(`${API_BASE}/skill-gap`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resume, jobDescription }),
+      body: JSON.stringify({ jobPostingId, resume, jobDescription }),
     });
+    return handleResponse(response);
+  },
+
+  async getCached(
+    jobPostingId: string
+  ): Promise<{ cached: boolean; cachedAt?: string; analysis: SkillGapAnalysisResponse | null }> {
+    const response = await fetch(
+      `${API_BASE}/skill-gap?jobPostingId=${encodeURIComponent(jobPostingId)}`
+    );
+    return handleResponse(response);
+  },
+};
+
+// Job Analysis API
+export const jobAnalysisApi = {
+  async analyze(
+    jobPostingId: string,
+    jobDescription: string
+  ): Promise<JobAnalysisResponse & { cached?: boolean; cachedAt?: string }> {
+    const response = await fetch(`${API_BASE}/job-analysis`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jobPostingId, jobDescription }),
+    });
+    return handleResponse(response);
+  },
+
+  async getCached(
+    jobPostingId: string
+  ): Promise<{ cached: boolean; cachedAt?: string; analysis: JobAnalysisResponse | null }> {
+    const response = await fetch(
+      `${API_BASE}/job-analysis?jobPostingId=${encodeURIComponent(jobPostingId)}`
+    );
     return handleResponse(response);
   },
 };

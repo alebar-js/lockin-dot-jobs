@@ -80,17 +80,8 @@ export function ExportResume() {
               Download your tailored resume
             </h2>
             <p className="text-sm text-muted-foreground mt-2">
-              Choose a format. We&apos;ll use your personalized resume if it exists; otherwise, the master resume.
+              Choose a format to export your personalized resume for this job posting
             </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setJobPostingView("actions")}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setJobPostingView("resume")}>
-              Edit Resume
-            </Button>
           </div>
         </div>
 

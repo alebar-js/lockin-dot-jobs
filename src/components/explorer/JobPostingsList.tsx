@@ -80,14 +80,14 @@ export function JobPostingsList({ onCreateClick }: JobPostingsListProps) {
 
   const handlePostingClick = (posting: JobPostingData) => {
     setActiveJobPostingId(posting.id);
-    router.push(`/job-postings/${posting.id}`);
+    router.push(`/app/job-postings/${posting.id}`);
   };
 
   return (
     <ScrollArea className="flex-1">
       <div className="space-y-1">
         {filteredPostings.map((posting: JobPostingData) => {
-          const isActive = pathname === `/job-postings/${posting.id}`;
+          const isActive = pathname === `/app/job-postings/${posting.id}`;
           return (
             <button
               key={posting.id}

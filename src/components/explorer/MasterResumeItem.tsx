@@ -14,11 +14,11 @@ export function MasterResumeItem() {
   const [isIngestDialogOpen, setIsIngestDialogOpen] = useState(false);
   const { data: masterResume } = useMasterResumeData();
 
-  const isActive = pathname === "/resume";
+  const isActive = pathname === "/app/resume";
   const hasResume = !!masterResume?.data;
 
   const handleClick = () => {
-    router.push("/resume");
+    router.push("/app/resume");
   };
 
   const handleUploadClick = (e: React.MouseEvent) => {

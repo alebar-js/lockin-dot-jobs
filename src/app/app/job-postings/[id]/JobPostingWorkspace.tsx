@@ -34,12 +34,12 @@ export function JobPostingWorkspace({ jobPostingId }: JobPostingWorkspaceProps) 
     if (data?.id) {
       setActiveJobPostingId(data.id);
       setViewMode("jobPosting");
-      // Auto-set view based on whether resume exists
+      // Default to actions menu
       if (!jobPostingView) {
-        setJobPostingView(data.data ? "resume" : "actions");
+        setJobPostingView("actions");
       }
     }
-  }, [data?.id, data?.data, setActiveJobPostingId, setViewMode, setJobPostingView, jobPostingView]);
+  }, [data?.id, setActiveJobPostingId, setViewMode, setJobPostingView, jobPostingView]);
 
   // Reset state when navigating away
   useEffect(() => {
@@ -188,7 +188,7 @@ function RightPanel() {
   // Show diff editor when reviewing changes
   if (diffData.isReviewing) {
     return (
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col bg-panel-elevated">
         <DiffEditor />
         <FloatingActionBar />
       </div>
@@ -198,7 +198,7 @@ function RightPanel() {
   // Show skill gaps view
   if (jobPostingView === "skillGaps" && skillGapData) {
     return (
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col bg-panel-elevated">
         <ViewHeader
           title="Skill Gap Analysis"
           icon={<TrendingUp className="w-4 h-4" />}
@@ -214,7 +214,7 @@ function RightPanel() {
   // Show export view
   if (jobPostingView === "export") {
     return (
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col bg-panel-elevated">
         <ViewHeader
           title="Export Resume"
           icon={<Download className="w-4 h-4" />}
@@ -230,7 +230,7 @@ function RightPanel() {
   // Show resume editor if resume exists
   if (jobPostingView === "resume") {
     return (
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col bg-panel-elevated">
         <ViewHeader
           title="Tailored Resume"
           icon={<FileText className="w-4 h-4" />}

@@ -6,6 +6,7 @@ import {
   jobPostingsApi,
   refactorApi,
   skillGapApi,
+  jobAnalysisApi,
   ingestApi,
 } from "./api";
 import type { ResumeProfile, JobPostingData, JobPostingStatus } from "@/types";
@@ -15,6 +16,10 @@ export const queryKeys = {
   masterResume: ["masterResume"] as const,
   jobPostings: ["jobPostings"] as const,
   jobPosting: (id: string) => ["jobPosting", id] as const,
+  skillGapAnalysis: (jobPostingId: string) =>
+    ["skillGapAnalysis", jobPostingId] as const,
+  jobAnalysis: (jobPostingId: string) =>
+    ["jobAnalysis", jobPostingId] as const,
 };
 
 // Master Resume Queries
@@ -80,9 +85,15 @@ export function useUpdateJobPostingData() {
         status: JobPostingStatus;
       }>;
     }) => jobPostingsApi.update(params.id, params.data),
-    onSuccess: (result) => {
+    onSuccess: (result, variables) => {
       queryClient.setQueryData(queryKeys.jobPosting(result.id), result);
       queryClient.invalidateQueries({ queryKey: queryKeys.jobPostings });
+      // Invalidate skill gap cache when resume data is updated
+      if (variables.data.data) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.skillGapAnalysis(result.id),
+        });
+      }
     },
   });
 }
@@ -117,11 +128,65 @@ export function useRefactorData() {
   });
 }
 
-// Skill Gap Analysis Mutation
+// Skill Gap Analysis Query and Mutation
+export function useSkillGapAnalysis(jobPostingId: string | null) {
+  return useQuery({
+    queryKey: queryKeys.skillGapAnalysis(jobPostingId ?? ""),
+    queryFn: () => skillGapApi.getCached(jobPostingId!),
+    enabled: !!jobPostingId,
+  });
+}
+
 export function useAnalyzeSkillGaps() {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (params: { resume: ResumeProfile; jobDescription: string }) =>
-      skillGapApi.analyze(params.resume, params.jobDescription),
+    mutationFn: (params: {
+      jobPostingId: string;
+      resume: ResumeProfile;
+      jobDescription: string;
+    }) =>
+      skillGapApi.analyze(
+        params.jobPostingId,
+        params.resume,
+        params.jobDescription
+      ),
+    onSuccess: (_result, variables) => {
+      // Invalidate job posting query to refresh with new skill gap data
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.jobPosting(variables.jobPostingId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.skillGapAnalysis(variables.jobPostingId),
+      });
+    },
+  });
+}
+
+// Job Analysis Query and Mutation
+export function useJobAnalysis(jobPostingId: string | null) {
+  return useQuery({
+    queryKey: queryKeys.jobAnalysis(jobPostingId ?? ""),
+    queryFn: () => jobAnalysisApi.getCached(jobPostingId!),
+    enabled: !!jobPostingId,
+  });
+}
+
+export function useAnalyzeJobPosting() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { jobPostingId: string; jobDescription: string }) =>
+      jobAnalysisApi.analyze(params.jobPostingId, params.jobDescription),
+    onSuccess: (_result, variables) => {
+      // Invalidate job posting query to refresh with new job analysis data
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.jobPosting(variables.jobPostingId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.jobAnalysis(variables.jobPostingId),
+      });
+    },
   });
 }
 
