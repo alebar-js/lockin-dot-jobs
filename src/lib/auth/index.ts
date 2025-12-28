@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
 import LinkedIn from "next-auth/providers/linkedin";
-import Facebook from "next-auth/providers/facebook";
+// import Facebook from "next-auth/providers/facebook";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -21,10 +21,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.AUTH_LINKEDIN_ID!,
       clientSecret: process.env.AUTH_LINKEDIN_SECRET!,
     }),
-    Facebook({
-      clientId: process.env.AUTH_FACEBOOK_ID!,
-      clientSecret: process.env.AUTH_FACEBOOK_SECRET!,
-    }),
+    // Facebook({
+    //   clientId: process.env.AUTH_FACEBOOK_ID!,
+    //   clientSecret: process.env.AUTH_FACEBOOK_SECRET!,
+    // }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
@@ -42,8 +42,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         google: 'googleId',
         github: 'githubId',
         linkedin: 'linkedinId',
-        facebook: 'facebookId',
-      }[provider] as 'googleId' | 'githubId' | 'linkedinId' | 'facebookId' | undefined;
+        // facebook: 'facebookId',
+      }[provider] as 'googleId' | 'githubId' | 'linkedinId' | undefined;
 
       if (!providerIdField) return false;
 
